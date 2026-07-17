@@ -1,0 +1,6 @@
+{
+  "name": "Mock Survey Experience",
+  "description": "An enterprise healthcare AI platform for Joint Commission mock survey compliance, risk analysis, and corrective action workflows.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
