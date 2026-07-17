@@ -10,6 +10,7 @@ export interface OriginalFinding {
   department: string; // e.g. "Internal Medicine (4B)"
   description: string; // Verbatim surveyor finding description
   category?: string; // Optional raw category
+  rowNumber?: number; // 1-indexed row number from CSV
 }
 
 export type HumanReviewStatus = 
@@ -30,12 +31,13 @@ export interface StandardsClassification {
   secondaryStandard?: string;
 }
 
-export type SurveyRiskLevel = "Low" | "Moderate" | "High";
+export type SurveyRiskLevel = "Low" | "Moderate" | "High" | "Unable to Determine";
 export type SAFERMatrixPlacement = 
   | "Low/Limited" | "Low/Pattern" | "Low/Widespread"
   | "Moderate/Limited" | "Moderate/Pattern" | "Moderate/Widespread"
   | "High/Limited" | "High/Pattern" | "High/Widespread"
-  | "Immediate Threat to Life";
+  | "Immediate Threat to Life"
+  | "Unable to Determine";
 
 export type TrendClassification = "Isolated" | "Repeat" | "Emerging" | "Established" | "Systemic";
 export type ExecutivePriority = "Routine Monitoring" | "Department Review" | "Leadership Review" | "Executive Escalation" | "Immediate Action Required";

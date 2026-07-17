@@ -45,7 +45,6 @@ export const initialRawFindings: OriginalFinding[] = [
 ];
 
 export function getInitialAnalyzedFindings(): MockSurveyFinding[] {
-  // Return pre-analyzed findings so the user sees a complete, rich initial state,
-  // while retaining the ability to wipe/reset or upload a new CSV and watch the workflow run!
-  return initialRawFindings.map(raw => runFullPipeline(raw));
+  // Started as empty array per user request to remove hard-coded sample findings from production.
+  return [];
 }

@@ -84,7 +84,7 @@ export default function App() {
         />
 
         {/* Main Content scrollable canvas */}
-        <main className="ml-64 w-full p-container-margin min-h-[calc(100vh-64px)] bg-surface pb-24 relative flex flex-col justify-between">
+        <main className="ml-64 w-full p-10 min-h-[calc(100vh-96px)] bg-surface pb-24 relative flex flex-col justify-between">
           <div className="flex-1 space-y-lg">
             {/* Detailed Subview Router */}
             {selectedFindingId && activeFinding ? (
@@ -127,18 +127,6 @@ export default function App() {
               <ExportCenter findings={findings} />
             ) : null}
           </div>
-
-          {/* Standard Page Footer matching Google Stitch layout exactly */}
-          <footer className="w-full py-md mt-xl border-t border-outline-variant/30 flex flex-col lg:flex-row justify-between items-center text-center gap-sm font-sans text-[10px] text-on-surface-variant font-medium">
-            <span className="max-w-2xl text-left leading-relaxed">
-              © 2026 Mock Survey AI Assistant. <strong>IMPORTANT:</strong> AI-generated findings require mandatory human oversight and clinical validation before regulatory submission.
-            </span>
-            <div className="flex gap-md font-bold uppercase tracking-wider">
-              <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-primary transition-colors">Data Compliance</a>
-            </div>
-          </footer>
         </main>
       </div>
     </div>

@@ -81,13 +81,13 @@ export function runStandardsClassificationSpecialist(original: OriginalFinding):
   // Fallback if unable to determine standard cleanly
   return {
     primaryChapter: "Unable to Determine",
-    primaryStandard: "TBD",
-    primaryEP: "TBD",
+    primaryStandard: "Unable to Determine",
+    primaryEP: "Unable to Determine",
     epLanguage: "No matching standard could be confidently mapped to this survey finding.",
-    regulatoryRationale: "The finding text lacks key vocabulary to map to specific JCI standards in the current database. Recommend manual allocation.",
-    confidenceScore: 45,
+    regulatoryRationale: "Uncertainty Reason: The surveyor description lacks specific keywords or context to identify JCI standard intent. Additional information needed: Operational details of clinic procedures, safety logs, and local workflows.",
+    confidenceScore: 0,
     humanReviewStatus: "Unable to Determine",
-    additionalInfoNeeded: "Operational details such as standard chapter intent (e.g. Medication Management vs Environment of Care) and location details."
+    additionalInfoNeeded: "Detailed context regarding the exact equipment, clinician action, or environmental condition witnessed."
   };
 }
 
@@ -187,16 +187,16 @@ export function runSurveyRiskIntelligenceSpecialist(
   // Handle unable to determine
   if (classification.primaryChapter === "Unable to Determine") {
     return {
-      surveyRiskLevel: "Moderate",
-      saferMatrixPlacement: "Moderate/Limited",
+      surveyRiskLevel: "Unable to Determine",
+      saferMatrixPlacement: "Unable to Determine",
       scope: "Limited",
       trendClassification: "Emerging",
       trendDomain: "General Compliance",
       executivePriority: "Leadership Review",
       surveyReadiness: "Significant Improvement Needed",
       executiveWatchList: false,
-      surveyRiskRationale: "Risk evaluation is tentative because regulatory standard classification could not be confidently established.",
-      humanReviewStatus: "Review Required"
+      surveyRiskRationale: "Uncertainty Reason: The finding does not match any known JCI standard keywords or clinical domains in the database. Additional information needed: Detailed clinical description of standard violated.",
+      humanReviewStatus: "Unable to Determine"
     };
   }
 
@@ -222,6 +222,22 @@ export function runCorrectiveActionSpecialist(
   classification: StandardsClassification,
   riskIntel: RiskIntelligence
 ): CorrectiveAction {
+  if (classification.primaryChapter === "Unable to Determine") {
+    return {
+      immediateCorrectiveAction: "No corrective action until human review.",
+      contributingSystemFactors: "Uncertainty Reason: High-confidence root cause analysis is blocked due to ambiguous survey details.",
+      improvementStrategy: "No corrective action until human review.",
+      interventionStrength: "Weak",
+      responsibleOwner: "Quality Assurance Committee",
+      suggestedTimeline: "TBD",
+      processMeasures: "None defined. Awaiting clinician assessment of appropriate monitoring metrics.",
+      outcomeMeasures: "None defined. Awaiting clinician assessment of target safety goals.",
+      sustainabilityStrategy: "None defined. Pending human verification of clinical standards.",
+      implementationComplexity: "Moderate",
+      executiveSponsorship: "Required",
+      improvementRationale: "Uncertainty Reason: Action plan is deferred to prevent implementing inappropriate or redundant process changes based on an unverified finding."
+    };
+  }
   
   // Default values
   let immediate = "Conduct staff review and rectify immediate finding.";

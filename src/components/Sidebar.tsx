@@ -8,10 +8,7 @@ import {
   LayoutDashboard, 
   Upload, 
   ClipboardList, 
-  Share2, 
-  HelpCircle, 
-  ShieldCheck,
-  MessageSquare
+  Share2
 } from "lucide-react";
 
 interface SidebarProps {
@@ -22,7 +19,7 @@ interface SidebarProps {
 
 export default function Sidebar({ currentSection, onNavigate, findingsCount }: SidebarProps) {
   return (
-    <aside className="flex flex-col w-64 border-r border-outline-variant/30 bg-[#f3f4f5] dark:bg-[#191c1d] h-[calc(100vh-64px)] fixed left-0 top-16 z-40 font-sans">
+    <aside className="flex flex-col w-64 border-r border-outline-variant/30 bg-[#f3f4f5] dark:bg-[#191c1d] h-[calc(100vh-96px)] fixed left-0 top-24 z-40 font-sans">
       {/* Brand Metadata */}
       <div className="p-lg">
         <h2 className="text-[11px] font-sans font-bold uppercase tracking-wider text-on-surface-variant mb-xs">
@@ -103,16 +100,6 @@ export default function Sidebar({ currentSection, onNavigate, findingsCount }: S
           </span>
         </button>
       </nav>
-
-      {/* Footer Support/About block */}
-      <div className="p-md mt-auto border-t border-outline-variant/30 space-y-1">
-        <button className="w-full flex items-center gap-md py-2 px-md text-secondary hover:bg-surface-container-high rounded-lg text-xs font-semibold uppercase tracking-wider cursor-pointer">
-          <HelpCircle className="w-4 h-4" /> Help Center
-        </button>
-        <button className="w-full flex items-center gap-md py-2 px-md text-secondary hover:bg-surface-container-high rounded-lg text-xs font-semibold uppercase tracking-wider cursor-pointer">
-          <MessageSquare className="w-4 h-4" /> Contact Support
-        </button>
-      </div>
     </aside>
   );
 }

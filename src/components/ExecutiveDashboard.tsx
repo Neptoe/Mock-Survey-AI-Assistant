@@ -90,7 +90,8 @@ export default function ExecutiveDashboard({
     "Low/Limited": 0, "Low/Pattern": 0, "Low/Widespread": 0,
     "Moderate/Limited": 0, "Moderate/Pattern": 0, "Moderate/Widespread": 0,
     "High/Limited": 0, "High/Pattern": 0, "High/Widespread": 0,
-    "Immediate Threat to Life": 0
+    "Immediate Threat to Life": 0,
+    "Unable to Determine": 0
   };
   findings.forEach(f => {
     const placement = f.riskIntelligence?.saferMatrixPlacement;
@@ -180,7 +181,7 @@ export default function ExecutiveDashboard({
               onClick={() => onFilterBySAFERPlacement("Immediate Threat to Life")}
               className="mb-2 p-sm bg-[#5c0005] hover:bg-[#80000a] text-white border border-[#400003] rounded-lg text-center font-sans text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm flex items-center justify-center gap-sm transition-all"
             >
-              <AlertTriangle className="w-4 h-4 text-white animate-bounce" />
+              <AlertTriangle className="w-4 h-4 text-white" />
               Immediate Threat to Life or Health ({placementCounts["Immediate Threat to Life"] || 0})
             </div>
 
