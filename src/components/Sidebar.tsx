@@ -8,7 +8,8 @@ import {
   LayoutDashboard, 
   Upload, 
   ClipboardList, 
-  Share2
+  Share2,
+  Sparkles
 } from "lucide-react";
 
 interface SidebarProps {
@@ -32,6 +33,24 @@ export default function Sidebar({ currentSection, onNavigate, findingsCount }: S
 
       {/* Main navigation menu links */}
       <nav className="flex-1 space-y-1 mt-md px-sm">
+        {/* Agent 1 Test Mode */}
+        <button
+          onClick={() => onNavigate("agent1-test")}
+          className={`w-full flex items-center justify-between py-2.5 px-md rounded-lg transition-all text-xs font-semibold uppercase tracking-wider cursor-pointer ${
+            currentSection === "agent1-test"
+              ? "bg-primary text-white shadow-sm"
+              : "text-secondary hover:bg-surface-container-high"
+          }`}
+        >
+          <span className="flex items-center gap-md">
+            <Sparkles className="w-4 h-4" />
+            Agent 1 Test Mode
+          </span>
+          <span className="text-[9px] font-bold bg-[#ba1a1a] text-white px-1.5 py-0.5 rounded-full uppercase">
+            Live
+          </span>
+        </button>
+
         {/* Overview */}
         <button
           onClick={() => onNavigate("overview")}

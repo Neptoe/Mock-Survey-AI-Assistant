@@ -22,7 +22,6 @@ async function startServer() {
 
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
-        // Return 412 Precondition Failed to indicate missing configuration
         res.status(412).json({
           error: "GEMINI_API_KEY environment variable is not configured. Please add your key in the AI Studio Settings secrets panel to enable live AI analysis.",
           fallback: true
@@ -36,7 +35,63 @@ async function startServer() {
       if (fs.existsSync(promptPath)) {
         systemInstruction = fs.readFileSync(promptPath, "utf-8");
       } else {
-        systemInstruction = "You are the Standards Classification Specialist. Analyze the ambulatory Joint Commission mock survey finding and map it to the most appropriate JCI Chapter, Standard, and Element of Performance (EP).";
+        systemInstruction = "You are the Standards Classification Specialist. Analyze ambulatory Joint Commission mock survey findings and determine the most appropriate Joint Commission regulatory classification.";
+      }
+
+      // Retrieve relevant passages from the JCI Standards DB based on the description
+      let retrievedPassages = "";
+      if (standardsDb && typeof standardsDb === "object") {
+        const descLower = finding.description.toLowerCase();
+        const keywords = descLower.split(/[\s,.;()]+/).filter((w: string) => w.length > 3);
+        const scoredEntries: any[] = [];
+
+        for (const [key, ref] of Object.entries(standardsDb)) {
+          const r = ref as any;
+          const searchContent = `${r.chapter} ${r.standard} ${r.ep} ${r.epLanguage} ${r.rationale} ${r.defaultTrendDomain}`.toLowerCase();
+          let score = 0;
+
+          // Semantic boosters for specific keywords
+          if (descLower.includes("eye") && (searchContent.includes("equipment") || searchContent.includes("environment"))) score += 6;
+          if (descLower.includes("sprinkler") && (searchContent.includes("fire") || searchContent.includes("combustion"))) score += 6;
+          if (descLower.includes("ceiling") && (searchContent.includes("care") || searchContent.includes("safety"))) score += 6;
+          if (descLower.includes("wall") && (searchContent.includes("care") || searchContent.includes("safety"))) score += 6;
+          if (descLower.includes("power strip") && (searchContent.includes("safety") || searchContent.includes("hazard"))) score += 6;
+          if (descLower.includes("sticker") && (searchContent.includes("equipment") || searchContent.includes("inspect"))) score += 6;
+
+          for (const word of keywords) {
+            if (searchContent.includes(word)) {
+              score += 1;
+            }
+          }
+
+          if (score > 0) {
+            scoredEntries.push({ key, ref: r, score });
+          }
+        }
+
+        // Sort by relevance score
+        scoredEntries.sort((a, b) => b.score - a.score);
+        
+        // Format the top matches as retrieved source passages
+        const topMatches = scoredEntries.slice(0, 5);
+        if (topMatches.length > 0) {
+          retrievedPassages = topMatches.map(m => `[RECONSTRUCTED JCI ACCREDITATION REFERENCE SOURCE PASSAGE]
+Reference Key: ${m.key}
+Chapter: ${m.ref.chapter}
+Standard: ${m.ref.standard}
+EP: ${m.ref.ep}
+EP Language: ${m.ref.epLanguage}
+Rationale: ${m.ref.rationale}
+Relevance Score: ${m.score}`).join("\n\n");
+        } else {
+          // Provide some standard passages as baseline context if no keyword matched
+          retrievedPassages = Object.entries(standardsDb).slice(0, 4).map(([key, ref]: [string, any]) => `[RECONSTRUCTED JCI ACCREDITATION REFERENCE SOURCE PASSAGE]
+Reference Key: ${key}
+Chapter: ${ref.chapter}
+Standard: ${ref.standard}
+EP: ${ref.ep}
+EP Language: ${ref.epLanguage}`).join("\n\n");
+        }
       }
 
       // Initialize Google GenAI lazily
@@ -49,42 +104,48 @@ async function startServer() {
         }
       });
 
-      // Construct a concise database context of JCI Standards for the AI model to prevent hallucination
-      const standardsContext = JSON.stringify(standardsDb || {}, null, 2);
-
       const prompt = `
-Please classify the following survey finding based on the JCI Standards knowledge base provided below.
+Please classify the following ambulatory Joint Commission mock survey finding using the authoritative Standards Classification Specialist logic.
 
 ==================================================
-SURVEY FINDING TO CLASSIFY:
+MOCK SURVEY FINDING RECORD:
 Finding ID: ${finding.id}
-Date: ${finding.date}
-Clinic/Location: ${finding.clinic}
-Department/Area: ${finding.department}
-Observation Description: "${finding.description}"
+Finding Date: ${finding.date || "2026-07-20"}
+Clinic Location: ${finding.clinic || "Ambulatory Clinic"}
+Department/Area: ${finding.department || "General Practice"}
+Observation Narrative: "${finding.description}"
 ==================================================
 
 ==================================================
-AUTHORITATIVE STANDARDS REFERENCE KNOWLEDGE BASE:
-${standardsContext}
+RELEVANT RETRIEVED JOINT COMMISSION REFERENCE PASSAGES:
+${retrievedPassages || "No matching reference documents found."}
 ==================================================
 
-Analyze the finding according to the 3-step regulatory reasoning:
-Step 1: Identify the object/process/condition observed.
-Step 2: Identify the broader regulatory concept.
-Step 3: Map to the standards database or perform provisional classification if needed.
+As the Standards Classification Specialist, you must perform deep concept mapping. Translate the specific walkthrough observation into broader regulatory domains.
 
-Provide a complete JCI Standards Classification JSON object following the schema defined:
+Follow these strict rules:
+1. Identify the Observed Object or Process and the Observed Deficiency.
+2. Translate specific observations into Underlying Regulatory Concepts (e.g. Inspection, testing, maintenance, cleaning, documentation, etc.).
+3. Identify candidate JCI Chapters, Standards, and EPs. Rank candidate classifications.
+4. If the exact Standard or EP is uncertain but the object, process, and regulatory domain are reasonably clear, permit a "Provisional Classification" rather than returning "Unable to Determine" immediately. Return "Unable to Determine" ONLY if no defensible classification can be inferred.
+5. Provide a clear Regulatory Rationale separating Observed Facts, Reasonable Regulatory Inference, and Assumptions Requiring Human Validation.
+
+Return a JSON object conforming exactly to the following properties:
 {
-  "primaryChapter": "Chapter Name",
-  "primaryStandard": "Standard Code (e.g., MM.03.01.01)",
-  "primaryEP": "EP Number (e.g., EP 2)",
-  "epLanguage": "Verbatim EP language",
-  "regulatoryRationale": "Explanatory narrative of observed facts, regulatory inference, and assumptions",
-  "confidenceScore": 90, 
+  "observedObjectOrProcess": "The physical object, equipment, or clinical process under observation (e.g., eye wash log, sprinkler head, power strip)",
+  "observedDeficiency": "The specific gap or deficiency witnessed (e.g., missing documented filter changes, dusty)",
+  "underlyingRegulatoryConcepts": "The broader clinical/operational concepts (e.g. inspection, testing, maintenance, ventilation, life safety)",
+  "mostLikelyChapter": "Name of the most likely Joint Commission Chapter (e.g. Environment of Care (EC))",
+  "primaryCandidateStandardAndEP": "The candidate code (e.g., EC.02.04.03 EP 2)",
+  "secondaryCandidateStandardAndEP": "Optional secondary standard candidate if multiple apply, or 'None'",
+  "confidenceScore": 85, // Integer 0 to 100
   "humanReviewStatus": "Review Not Required" | "Review Recommended" | "Review Required" | "Unable to Determine",
-  "additionalInfoNeeded": "Any additional information needed if confidence is low",
-  "secondaryStandard": "Optional second standard code if applicable"
+  "additionalInfoNeeded": "Additional clinical/procedural information required to confirm or refine this classification",
+  "primaryChapter": "Chapter Name",
+  "primaryStandard": "Standard code (e.g., EC.02.04.03)",
+  "primaryEP": "EP number (e.g., EP 2)",
+  "epLanguage": "Verbatim EP language corresponding to the selected classification",
+  "regulatoryRationale": "Explanatory narrative. MUST include sections for: 'Observed Facts', 'Reasonable Regulatory Inference', and 'Assumptions Requiring Human Validation'"
 }
 `;
 
@@ -97,50 +158,43 @@ Provide a complete JCI Standards Classification JSON object following the schema
           responseSchema: {
             type: Type.OBJECT,
             properties: {
-              primaryChapter: {
-                type: Type.STRING,
-                description: "Primary JCI Chapter Name"
-              },
-              primaryStandard: {
-                type: Type.STRING,
-                description: "Primary JCI Standard ID (e.g., MM.03.01.01)"
-              },
-              primaryEP: {
-                type: Type.STRING,
-                description: "Primary JCI Element of Performance (e.g., EP 2)"
-              },
-              epLanguage: {
-                type: Type.STRING,
-                description: "Verbatim EP text from JCI reference documents"
-              },
-              regulatoryRationale: {
-                type: Type.STRING,
-                description: "Explanatory rationale translating the observed finding into regulatory concepts"
-              },
-              confidenceScore: {
-                type: Type.INTEGER,
-                description: "Confidence level score from 0 to 100"
-              },
-              humanReviewStatus: {
-                type: Type.STRING,
-                description: "Status indicating whether a human needs to review the classification"
-              },
-              additionalInfoNeeded: {
-                type: Type.STRING,
-                description: "Operational/clinical details needed from the clinic to refine classification"
-              },
-              secondaryStandard: {
-                type: Type.STRING,
-                description: "Optional secondary standard if multiple apply"
-              }
+              observedObjectOrProcess: { type: Type.STRING },
+              observedDeficiency: { type: Type.STRING },
+              underlyingRegulatoryConcepts: { type: Type.STRING },
+              mostLikelyChapter: { type: Type.STRING },
+              primaryCandidateStandardAndEP: { type: Type.STRING },
+              secondaryCandidateStandardAndEP: { type: Type.STRING },
+              confidenceScore: { type: Type.INTEGER },
+              humanReviewStatus: { type: Type.STRING },
+              additionalInfoNeeded: { type: Type.STRING },
+              primaryChapter: { type: Type.STRING },
+              primaryStandard: { type: Type.STRING },
+              primaryEP: { type: Type.STRING },
+              epLanguage: { type: Type.STRING },
+              regulatoryRationale: { type: Type.STRING }
             },
-            required: ["primaryChapter", "primaryStandard", "primaryEP", "epLanguage", "regulatoryRationale", "confidenceScore", "humanReviewStatus"]
+            required: [
+              "observedObjectOrProcess",
+              "observedDeficiency",
+              "underlyingRegulatoryConcepts",
+              "mostLikelyChapter",
+              "primaryCandidateStandardAndEP",
+              "confidenceScore",
+              "humanReviewStatus",
+              "primaryChapter",
+              "primaryStandard",
+              "primaryEP",
+              "epLanguage",
+              "regulatoryRationale"
+            ]
           }
         }
       });
 
       const responseText = response.text || "";
       const result = JSON.parse(responseText.trim());
+      result.promptSent = prompt;
+      result.retrievedPassages = retrievedPassages;
       res.json(result);
     } catch (error: any) {
       console.error("[Classifier API Error]:", error);

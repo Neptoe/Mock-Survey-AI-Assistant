@@ -29,6 +29,14 @@ export interface StandardsClassification {
   humanReviewStatus: HumanReviewStatus;
   additionalInfoNeeded?: string;
   secondaryStandard?: string;
+  
+  // Intermediate reasoning fields
+  observedObjectOrProcess?: string;
+  observedDeficiency?: string;
+  underlyingRegulatoryConcepts?: string;
+  mostLikelyChapter?: string;
+  primaryCandidateStandardAndEP?: string;
+  secondaryCandidateStandardAndEP?: string;
 }
 
 export type SurveyRiskLevel = "Low" | "Moderate" | "High" | "Unable to Determine";

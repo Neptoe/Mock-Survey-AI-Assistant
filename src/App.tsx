@@ -12,11 +12,12 @@ import SpecialistRunner from "./components/SpecialistRunner";
 import FindingsExplorer from "./components/FindingsExplorer";
 import FindingDetailView from "./components/FindingDetailView";
 import ExportCenter from "./components/ExportCenter";
+import Agent1TestMode from "./components/Agent1TestMode";
 import { getInitialAnalyzedFindings } from "./data/mockFindings";
 import { MockSurveyFinding, OriginalFinding, SAFERMatrixPlacement } from "./types";
 
 export default function App() {
-  const [section, setSection] = useState<string>("overview"); // overview, import, findings, export, pipeline
+  const [section, setSection] = useState<string>("agent1-test"); // overview, import, findings, export, pipeline, agent1-test
   const [findings, setFindings] = useState<MockSurveyFinding[]>(getInitialAnalyzedFindings());
   const [rawFindings, setRawFindings] = useState<OriginalFinding[]>([]);
   const [selectedFindingId, setSelectedFindingId] = useState<string | null>(null);
@@ -93,6 +94,8 @@ export default function App() {
                 onBack={() => setSelectedFindingId(null)}
                 onUpdateFinding={handleUpdateFinding}
               />
+            ) : section === "agent1-test" ? (
+              <Agent1TestMode />
             ) : section === "overview" ? (
               <ExecutiveDashboard 
                 findings={findings}

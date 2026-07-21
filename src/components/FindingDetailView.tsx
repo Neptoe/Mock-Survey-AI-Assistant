@@ -337,10 +337,56 @@ export default function FindingDetailView({
 
             {/* AI Specialist Rationale */}
             <div className="space-y-xs">
-              <span className="text-[10px] font-bold text-on-surface-variant uppercase block">Classification Specialist Rationale</span>
-              <p className="text-on-surface-variant text-xs leading-relaxed">
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase block font-semibold text-primary">Regulatory Rationale & Analysis</span>
+              <p className="text-on-surface-variant text-xs leading-relaxed whitespace-pre-line bg-slate-50 p-sm rounded-lg border border-slate-100">
                 {classification?.regulatoryRationale || "N/A"}
               </p>
+            </div>
+
+            {/* Regulatory Reasoning Concept Mapping Section */}
+            <div className="border-t border-outline-variant/20 pt-md mt-md space-y-sm">
+              <span className="text-[10px] font-bold text-primary uppercase tracking-wider block">Regulatory Reasoning (Concept Mapping)</span>
+              
+              <div className="grid grid-cols-2 gap-sm">
+                <div className="bg-slate-50 p-sm rounded-lg border border-slate-100">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase block">Observed Object / Process</span>
+                  <p className="font-semibold text-primary text-xs mt-0.5">{classification?.observedObjectOrProcess || "N/A"}</p>
+                </div>
+                <div className="bg-slate-50 p-sm rounded-lg border border-slate-100">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase block">Observed Deficiency</span>
+                  <p className="font-semibold text-primary text-xs mt-0.5">{classification?.observedDeficiency || "N/A"}</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 p-sm rounded-lg border border-slate-100">
+                <span className="text-[9px] font-bold text-on-surface-variant uppercase block">Underlying Regulatory Concepts</span>
+                <p className="font-semibold text-primary text-xs mt-0.5">{classification?.underlyingRegulatoryConcepts || "N/A"}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-sm">
+                <div className="bg-slate-50 p-sm rounded-lg border border-slate-100">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase block">Most Likely Chapter</span>
+                  <p className="font-semibold text-primary text-xs mt-0.5">{classification?.mostLikelyChapter || classification?.primaryChapter || "N/A"}</p>
+                </div>
+                <div className="bg-slate-50 p-sm rounded-lg border border-slate-100">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase block">Primary Candidate Standard</span>
+                  <p className="font-semibold text-primary text-xs mt-0.5">{classification?.primaryCandidateStandardAndEP || `${classification?.primaryStandard} ${classification?.primaryEP}` || "N/A"}</p>
+                </div>
+              </div>
+
+              {classification?.secondaryCandidateStandardAndEP && classification.secondaryCandidateStandardAndEP !== "None" && (
+                <div className="bg-slate-50 p-sm rounded-lg border border-slate-100">
+                  <span className="text-[9px] font-bold text-on-surface-variant uppercase block">Secondary Candidate Standard</span>
+                  <p className="font-semibold text-primary text-xs mt-0.5">{classification.secondaryCandidateStandardAndEP}</p>
+                </div>
+              )}
+
+              {classification?.additionalInfoNeeded && (
+                <div className="bg-amber-50 p-sm rounded-lg border border-amber-100">
+                  <span className="text-[9px] font-bold text-amber-800 uppercase block">Additional Info Needed</span>
+                  <p className="font-semibold text-amber-900 text-xs mt-0.5">{classification.additionalInfoNeeded}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

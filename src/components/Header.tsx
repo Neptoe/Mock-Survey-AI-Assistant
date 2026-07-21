@@ -27,6 +27,16 @@ export default function Header({ currentSection, onNavigate }: HeaderProps) {
         {/* Quick Nav Tabs */}
         <nav className="hidden md:flex ml-16 gap-md">
           <button
+            onClick={() => onNavigate("agent1-test")}
+            className={`text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all ${
+              currentSection === "agent1-test" 
+                ? "bg-primary-fixed/20 text-primary font-bold" 
+                : "text-secondary hover:bg-surface-container-low"
+            }`}
+          >
+            Agent 1 Test Mode
+          </button>
+          <button
             onClick={() => onNavigate("overview")}
             className={`text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-all ${
               currentSection === "overview" 
