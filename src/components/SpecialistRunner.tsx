@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from "react";
 import { Play, Sparkles, CheckCircle2, ChevronRight, Activity, Terminal } from "lucide-react";
 import { OriginalFinding, MockSurveyFinding } from "../types";
-import { runFullPipeline } from "../utils/jciClassifier";
+import { runFullPipeline, runFullPipelineAsync } from "../utils/jciClassifier";
 
 interface SpecialistRunnerProps {
   rawFindings: OriginalFinding[];
@@ -99,11 +99,21 @@ export default function SpecialistRunner({ rawFindings, onAnalysisComplete }: Sp
     }
 
     if (currentStep === "completed") {
-      setLogs(prev => [...prev, `[Multi-Specialist Engine] Sequenced execution complete. Ready to render Executive Dashboard.`]);
-      // Process all
-      const results = rawFindings.map(raw => runFullPipeline(raw));
+      setLogs(prev => [...prev, `[Multi-Specialist Engine] Sequenced execution complete. Launching high-precision live AI classification...`]);
+      
+      const processAllAsync = async () => {
+        try {
+          const results = await Promise.all(rawFindings.map(raw => runFullPipelineAsync(raw)));
+          onAnalysisComplete(results);
+        } catch (err) {
+          console.error("Async execution failed, falling back to heuristics:", err);
+          const results = rawFindings.map(raw => runFullPipeline(raw));
+          onAnalysisComplete(results);
+        }
+      };
+
       setTimeout(() => {
-        onAnalysisComplete(results);
+        processAllAsync();
       }, 1500);
     }
 

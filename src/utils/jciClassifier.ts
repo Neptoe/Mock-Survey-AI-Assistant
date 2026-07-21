@@ -378,3 +378,46 @@ export function runFullPipeline(raw: OriginalFinding): MockSurveyFinding {
     processedAt: new Date().toISOString()
   };
 }
+
+// Live asynchronous Standards Classification using Gemini API
+export async function runStandardsClassificationSpecialistAsync(original: OriginalFinding): Promise<StandardsClassification> {
+  try {
+    const res = await fetch("/api/classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ finding: original, standardsDb: standardsDatabase }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      console.warn("[Classifier Async Warning] Server classification returned non-OK status, falling back to heuristics:", errData.error || res.statusText);
+    }
+  } catch (error) {
+    console.warn("[Classifier Async Error] Failed to reach classification API, falling back to heuristics:", error);
+  }
+
+  // Fallback to local heuristic classifier
+  return runStandardsClassificationSpecialist(original);
+}
+
+// Live full pipeline executing asynchronously
+export async function runFullPipelineAsync(raw: OriginalFinding): Promise<MockSurveyFinding> {
+  const classification = await runStandardsClassificationSpecialistAsync(raw);
+  const riskIntelligence = runSurveyRiskIntelligenceSpecialist(raw, classification);
+  const correctiveAction = runCorrectiveActionSpecialist(raw, classification, riskIntelligence);
+  const status = riskIntelligence.surveyRiskLevel === "High" ? "Needs Review" : "Complete";
+
+  return {
+    id: raw.id,
+    original: raw,
+    classification,
+    riskIntelligence,
+    correctiveAction,
+    status,
+    processedAt: new Date().toISOString()
+  };
+}
+
